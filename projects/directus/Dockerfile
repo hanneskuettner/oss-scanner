@@ -45,8 +45,8 @@ SCRIPT
 
 # Smoke test: boot the instance once. A failure is reported in the build log and does not abort the build.
 RUN (directus-start > /tmp/directus-smoke.log 2>&1 & \
-      for _ in $(seq 1 120); do curl -fsS http://127.0.0.1:8055/server/health > /dev/null 2>&1 && break; sleep 1; done; \
-      if curl -fsS http://127.0.0.1:8055/server/health; then echo " <- directus is up"; \
+      for _ in $(seq 1 120); do curl -fsS http://127.0.0.1:8055/server/ping > /dev/null 2>&1 && break; sleep 1; done; \
+      if curl -fsS http://127.0.0.1:8055/server/ping; then echo " <- directus is up"; \
       else echo "WARNING: directus did not come up"; tail -n 80 /tmp/directus-smoke.log; fi; \
       pkill -f 'directus/cli.js start'; sleep 2) || echo "WARNING: smoke test failed"
 
