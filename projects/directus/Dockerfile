@@ -22,24 +22,29 @@ ENV NODE_OPTIONS=--max-old-space-size=8192
 RUN pnpm install --frozen-lockfile
 RUN npm_config_workspace_concurrency=2 pnpm --recursive --filter '!e2e' run build
 
-# Local-only settings for a runnable instance; no production credentials are involved.
-ENV DB_CLIENT=sqlite3 \
-    DB_FILENAME=/src/.local/database.sqlite \
-    STORAGE_LOCATIONS=local \
-    STORAGE_LOCAL_ROOT=/src/.local/uploads \
-    EXTENSIONS_PATH=/src/.local/extensions \
-    SECRET=oss-scanner-local-only-not-a-production-secret \
-    ADMIN_EMAIL=admin@example.com \
-    ADMIN_PASSWORD=oss-scanner-admin \
-    PUBLIC_URL=http://127.0.0.1:8055 \
-    TELEMETRY=false
+# Local-only settings for a runnable instance; no production credentials are involved. They live in a config file
+# rather than ENV so they do not leak into the unit tests, which assume Directus's defaults.
+COPY <<'CONFIG' /src/.local/directus.env
+DB_CLIENT=sqlite3
+DB_FILENAME=/src/.local/database.sqlite
+STORAGE_LOCATIONS=local
+STORAGE_LOCAL_ROOT=/src/.local/uploads
+EXTENSIONS_PATH=/src/.local/extensions
+SECRET=oss-scanner-local-only-not-a-production-secret
+ADMIN_EMAIL=admin@example.com
+ADMIN_PASSWORD=oss-scanner-admin
+PUBLIC_URL=http://127.0.0.1:8055
+TELEMETRY=false
+CONFIG
 RUN mkdir -p /src/.local/uploads /src/.local/extensions \
-    && node /src/directus/cli.js bootstrap
+    && CONFIG_PATH=/src/.local/directus.env node /src/directus/cli.js bootstrap
 
 COPY --chmod=755 <<'SCRIPT' /usr/local/bin/directus-start
 #!/bin/bash
 # Starts Directus on http://127.0.0.1:8055 against the bundled SQLite database (/src/.local).
-# Log in as admin@example.com / oss-scanner-admin. Extra environment (LOG_LEVEL=debug, ...) passes through.
+# Log in as admin@example.com / oss-scanner-admin. Settings are in /src/.local/directus.env; extra environment
+# (LOG_LEVEL=debug, ...) passes through.
+export CONFIG_PATH="${CONFIG_PATH:-/src/.local/directus.env}"
 exec node /src/directus/cli.js start "$@"
 SCRIPT
 
