@@ -1,12 +1,10 @@
 # Directus for the OSS Scanner: the whole pnpm monorepo (API, app, SDK and shared packages) built from source with
 # development dependencies kept, plus a local SQLite instance that starts with no network (`directus-start`).
+# node:22-bookworm already carries the toolchain native modules need (gcc, make, python3, git, curl).
 FROM node:22-bookworm
 ENV DEBIAN_FRONTEND=noninteractive \
     CI=true \
     HUSKY=0
-RUN apt-get update && apt-get install -y --no-install-recommends \
-      ca-certificates git python3 python3-setuptools build-essential sqlite3 curl procps \
-    && rm -rf /var/lib/apt/lists/*
 
 # scanner contract: the checkout lives inside the image, at /src
 COPY . /src
