@@ -1,7 +1,8 @@
 # Directus for the OSS Scanner: the whole pnpm monorepo (API, app, SDK and shared packages) built from source with
 # development dependencies kept, plus a local SQLite instance that starts with no network (`directus-start`).
-# node:22-bookworm already carries the toolchain native modules need (gcc, make, python3, git, curl).
-FROM node:22-bookworm
+# node:22-trixie carries the toolchain native modules need (gcc, make, python3, git, curl), and the glibc (2.38+)
+# the prebuilt sqlite3 binary needs, which bookworm's 2.36 lacks.
+FROM node:22-trixie
 ENV DEBIAN_FRONTEND=noninteractive \
     CI=true \
     HUSKY=0
